@@ -1,0 +1,464 @@
+# Homework #1
+# name: SAMSON_LEUNG
+# sbuid: 110490519
+
+.macro load_args
+sw $a0, numargs
+lw $t0, 0($a1)
+sw $t0, arg1
+lw $t0, 4($a1)
+sw $t0, arg2
+lw $t0, 8($a1)
+sw $t0, arg3
+.end_macro
+
+.macro printString(%str)
+	li $v0, 4	# print string
+	la $a0, %str
+	syscall
+.end_macro
+
+.macro printNum(%num)
+	li $v0, 1	# print number
+	move $a0, %num
+	syscall
+.end_macro
+
+.macro printSpace
+	li $v0, 4	# print space
+	la $a0, space
+	syscall
+.end_macro
+
+.macro printLine
+	li $v0, 4	# print newline
+	la $a0, newLine
+	syscall
+.end_macro
+
+.data
+.align 2
+numargs: .word 0
+arg1: .word 0
+arg2: .word 0
+arg3: .word 0
+
+Err_string: .asciiz "ARGUMENT ERROR"
+Part2: .asciiz "Part 2: "
+Part3: .asciiz "Part 3: "
+ran: .asciiz "ran"
+StringArg2: .asciiz "ARG2: "
+StringArg3: .asciiz "ARG3: "
+space: .asciiz " "
+newLine: .asciiz "\n"
+ham: .asciiz "Hamming Distance: "
+
+# Part 3
+sum: .asciiz "sum: "
+last: .asciiz "Last value drawn: "
+total: .asciiz "Total values: "
+even: .asciiz "# of Even: "
+odd: .asciiz "# of Odd: "
+power: .asciiz "Power of 2: "
+mul2: .asciiz "Multiple of 2: "
+mul4: .asciiz "Multiple of 4: "
+mul8: .asciiz "Multiple of 8: "
+
+.text
+.globl main
+main:
+	load_args() # Only do this once to avoid overwrite
+	j checkFirstArg
+	j endProgram
+	
+# Check for three arguments
+check3Args:
+	lw $t2, numargs
+	li $t1, 3
+	bne $t1, $t2, errorMsg
+	jr $ra
+	
+check2Args:
+	lw $a0, numargs
+	li $t1, 2
+	bne $t1, $a0, errorMsg
+	jr $ra
+	
+checkFirstArg:
+	li $t1, 0 # Counter = 0
+	lw $s0, arg1 # Load first arg into $s0
+	lb $t7, 0($s0) # Store first character into $t7
+	j forLoop
+	
+forLoop:
+	lb $s1, 0($s0) # Store first character into $s1
+	beqz $s1, exitForLoop # If character null, equal to 0, exitForLoop
+	addi $t1, $t1, 1 # Increment counter
+	addi $s0, $s0, 1 # Increment pointer position
+	
+	#Check letter	
+	beq $s1, 'r', forLoop
+	beq $s1, 'R', forLoop
+	beq $s1, 'a', forLoop
+	beq $s1, 'A', forLoop
+	j errorMsg # Jump to error message if no match
+exitForLoop:
+	li $t2, 1
+	bne $t1, $t2, errorMsg # Error msg if length is not 1
+	
+	# Branch part 2
+	beq $t7, 'a', part2
+	beq $t7, 'A', part2
+	
+	# Branch part 3
+	beq $t7, 'r', part3
+	beq $t7, 'R', part3
+	
+	j endProgram
+	
+part2:
+	#printString(Part2)
+	#li $v0, 4	# print argument
+	#lw $a0, arg1
+	#syscall
+	
+	#check for three arguments
+	jal check3Args
+	
+	#FIRST ARGUMENT#
+	printString(StringArg2)
+	lw $s0, arg2 # Load second arg into $s0
+
+	lb $t1, 0($s0) # Store first character into $t1
+	
+	lb $t2, 1($s0) # Store second character into $t2
+	
+	lb $t3, 2($s0) # Store third character into $t3	
+	
+	lb $t4, 3($s0) # Store fourth character into $t4
+	
+	move $t5, $0 # clear register
+	add $t5, $t5, $t1 # Store first
+	
+	sll $t2, $t2, 8 # shift 8 bits
+	add $t5, $t5, $t2 # Store second
+	
+	sll $t3, $t3, 16 # shift 16 bits
+	add $t5, $t5, $t3 # Store third
+	
+	sll $t4, $t4, 24 # shift 24 bits
+	add $t5, $t5, $t4 # Store fourth
+	
+	move $t6, $t5 # store into $t6 for later hamming calculations
+	
+	# print binary
+	li $v0, 35	
+	move $a0, $t5
+	syscall
+	
+	printSpace
+	
+	# print hex
+	li $v0, 34	
+	move $a0, $t5
+	syscall
+	
+	printSpace
+	
+	# print twos complement
+	li $v0, 1	
+	move $a0, $t5
+	syscall
+	
+	printSpace
+	
+	# print ones complement
+	li $v0, 100	
+	move $a0, $t5
+	syscall
+	
+	printSpace
+	
+	# print signed magnitude
+	li $v0, 101	
+	move $a0, $t5
+	syscall
+	
+	printLine
+	
+	#SECOND ARGUMENT#
+	printString(StringArg3)
+	move $s0, $0 # clear register
+	lw $s0, arg3 # Load third arg into $s0
+
+	lb $t1, 0($s0) # Store first character into $t1
+	
+	lb $t2, 1($s0) # Store second character into $t2
+	
+	lb $t3, 2($s0) # Store third character into $t3	
+	
+	lb $t4, 3($s0) # Store fourth character into $t4
+	
+	move $t5, $0 # clear register
+	add $t5, $t5, $t1 # Store first
+	
+	sll $t2, $t2, 8 # shift 8 bits
+	add $t5, $t5, $t2 # Store second
+	
+	sll $t3, $t3, 16 # shift 16 bits
+	add $t5, $t5, $t3 # Store third
+	
+	sll $t4, $t4, 24 # shift 24 bits
+	add $t5, $t5, $t4 # Store fourth
+	
+	move $t7, $t5 # store into $t7 for later hamming calculations
+	
+	# print binary
+	li $v0, 35	
+	move $a0, $t5
+	syscall
+	
+	printSpace
+	
+	# print hex
+	li $v0, 34	
+	move $a0, $t5
+	syscall
+	
+	printSpace
+	
+	# print twos complement
+	li $v0, 1	
+	move $a0, $t5
+	syscall
+	
+	printSpace
+	
+	# print ones complement
+	li $v0, 100	
+	move $a0, $t5
+	syscall
+	
+	printSpace
+	
+	# print signed magnitude
+	li $v0, 101	
+	move $a0, $t5
+	syscall
+	
+	# Hamming distance
+	xor $t8, $t6, $t7 #hamming distance between arg2($t6) and arg3($t7) stored in $t8
+	
+	# $s0 = num, $s1 = counter, $s2 = bit, $t0 = position, $t1 = i
+        move $s0, $t8    	# num = input value
+	li $s1, 0 		# counter = 0
+	li $t0, 1 		# position = 1
+	li $t1, 0 		# i = 0
+	
+loop:
+	and $s2, $s0, $t0 	# bit = num & position
+	beqz $s2, end_if	# bit == 0, so leave if-statement
+	addi $s1, $s1, 1	# bit == 1, so add 1 to counter
+end_if:
+
+	sll $t0, $t0, 1		# position = position << 1
+	addi $t1, $t1, 1	# i++
+	blt $t1, 32, loop	# if i < 32 then iterate again	
+	
+	printLine
+	printString(ham)
+	
+	# print hamming
+	li $v0, 1	
+	move $a0, $s1
+	syscall
+	
+	j endProgram
+
+part3:
+	#printString(Part3)
+	#li $v0, 4	# print string
+	#lw $a0, arg1
+	#syscall
+	
+	#check for two arguments
+	jal check2Args
+	
+	# $t0 = 48(ascii zero), $t1 = 57 (ascii nine), $t2 = sum, $t3 = 10, $t4 = char, $t5 = char - '0', $t6 = 10, $t7 = (sum * 10)
+	lw $s0, arg2 	# Load second arg into $s0
+	li $t0, 48 	# ascii 0
+	li $t1, 57 	# ascii 9
+	li $t2, 0 	# sum
+	li $t6, 10   	# 10
+
+	j checkLoop
+
+checkLoop:
+	lb $t4, ($s0)	# load char
+	
+	blt $t4, $t0, endCheck # check to see if < ascii '0'
+	bgt $t4, $t1, endCheck # check to see if > ascii '9'
+	beq $t4, $0, endCheck  # check for null char
+	
+	# sum = (sum * 10) + (char - '0')
+	mult $t2, $t6
+	mflo $t7		# (sum * 10)
+	sub $t5, $t4, $t0	# (char - '0')
+	add $t2, $t7, $t5	# (sum * 10) + (char - '0') stored in $t2
+	
+	addi $s0, $s0, 1	# counter++
+	
+	j checkLoop
+
+endCheck:
+	#printString(sum)
+	
+	# print sum
+	#li $v0, 1	
+	#move $a0, $t2
+	#syscall
+	
+	# Set seed
+	li $v0, 40	
+	li $a0, 0
+	move $a1, $t2 # set seed to sum $t2
+	syscall
+	
+		   # $s2 is for holding random number generated
+	li $t0, 64 # $t0 = 64 for checking less than 64		DO NOT CHANGE
+	li $t1, 0  # $t1 = total values				DO NOT CHANGE
+	li $t2, 2  # $t2 = 2 for checking even/multiples	
+	li $t3, 0  # $t3 = 0 counter of even/multiple of 2	DO NOT CHANGE
+	li $t4, 0  # store remainder
+	li $t5, 0  # $t5 = 0 counter of odd			DO NOT CHANGE
+	li $t6, 0  # $t6 = 0 counter for power of 2		DO NOT CHANGE
+	li $t7, 0  # $t7 = 0 counter of multiple of 4		DO NOT CHANGE
+	li $t8, 0  # $t8 = 0 counter of multiple of 8		DO NOT CHANGE
+	
+	j generate
+
+generate:
+	# $t0 = 64, $t1 = total values,
+	# generate random int
+	li $v0, 42
+	li $a0, 0	# random num is stored in $a0
+	li $a1, 1024
+	syscall
+	
+	addi $a0, $a0, 1
+	move $s2, $a0	# store random num in $s2
+
+	# keep count of statistics
+	addi $t1, $t1, 1 # total values ++
+	
+	# check if even/multiple of 2
+	li $t2, 2
+	div $s2, $t2 #$HI stores remainder
+	mfhi $t4
+	beqz $t4, evenMult2
+	addi $t5, $t5, 1 # counter of odd ++
+	
+	# special case of 1
+	li $t2, 1
+	beq $s2, $t2, specialOne
+	
+	j generate
+
+evenMult2:
+	addi $t3, $t3, 1 # num of Even/Multiple of 2++
+	j mult4
+mult4:
+	# Check multiple of 4
+	li $t2, 4	# used to check multiple of 4
+	div $s2, $t2 	# $HI stores remainder
+	mfhi $t4	# move $HI into $t4
+	beqz $t4, mult8 # go to check if multiple of 8, remainder should be 0
+	# else check power of 2
+	j checkPower
+mult8:
+	addi $t7, $t7, 1 # num of Multiple of 4++
+	# Check multiple of 8
+	li $t2, 8	# used to check multiple of 8
+	div $s2, $t2 	# $HI stores remainder
+	mfhi $t4	# move $HI into $t4
+	beqz $t4, endMult8 # check if multiple of 8, remainder should be 0
+	# else check power of 2
+	j checkPower
+endMult8:
+	addi $t8, $t8, 1 # num of Multiple of 8++
+	# check power of 2
+	j checkPower
+
+checkPower:
+	
+	# Check power of 2: $t2 = (random - 1), $t4 = AND result
+	addi $t2, $s2, -1
+	and $t4, $t2, $s2
+	beqz $t4, check64 # if power of 2, check if less than 64
+	
+	# go back to generate if not power of 2
+	j generate
+	
+specialOne:
+	addi $t6, $t6, 1 # counter power of 2 ++
+	j endGenerate
+	
+check64: # directed from verifying power of 2 is true
+	# check less than 64
+	blt $s2, $t0, endGenerate # end program if less than 64
+	addi $t6, $t6, 1 # counter power of 2 ++
+	# go back to generate
+	j generate
+	
+endGenerate:
+	addi $t6, $t6, 1 # counter power of 2 ++ for the last number
+	
+	# Last value drawn
+	printString(last) 
+	printNum($s2)
+	printLine
+	
+	# Total values
+	printString(total)
+	printNum($t1)
+	printLine
+	
+	# num of Even
+	printString(even)
+	printNum($t3)
+	printLine
+	
+	# num of Odd
+	printString(odd)
+	printNum($t5)
+	printLine
+	
+	# powers of 2
+	printString(power)
+	printNum($t6)
+	printLine
+	
+	# Multiple of 2
+	printString(mul2)
+	printNum($t3)
+	printLine
+	
+	# Multiple of 4
+	printString(mul4)
+	printNum($t7)
+	printLine
+	
+	# Multiple of 8
+	printString(mul8)
+	printNum($t8)
+	
+	j endProgram
+	
+errorMsg:
+	# Prints out the error message
+	printString(Err_string)
+	j endProgram
+
+endProgram:
+	li $v0, 10
+	syscall

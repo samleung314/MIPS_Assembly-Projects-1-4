@@ -1,0 +1,13 @@
+cells_array: .space 100
+
+.macro copyArray(%srcArray, %destArray)
+li $t0, 0
+move $t2, %srcArray
+la $t3, %destArray
+arrayCopy:
+lb $t1, ($t2)
+sb $t1, ($t3)
+addi $t2, $t2, 1
+addi $t3, $t3, 1
+blt $t0, 100, arrayCopy
+.end_macro
